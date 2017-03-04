@@ -1,13 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Assembler where
 
-import Control.Monad (void)
-import GHC.Word
 import qualified Data.Text as T -- from the "text" package
-import Text.Megaparsec hiding (Label, label)
-import qualified Text.Megaparsec.Lexer as L
-import Numeric (readHex)
-
+import Text.Megaparsec  -- from the "megaparsec" package
 
 type Parser = Parsec Dec T.Text
 
@@ -30,72 +24,30 @@ data Expr
   | Assignment Var Val
   deriving Show
 
--- | Our top level parser, looking at the grammar this is simply either an instruction or an
--- assigment.
 parseExpression :: Parser Expr
-parseExpression = try assignment <|> instruction
+parseExpression = undefined
 
--- | Parse an assignment of a label (a variable name in this case, of type 'Var') to a byte
--- value, with immediate or non-immediate addressing.
 assignment :: Parser Expr
-assignment = do
-  labelVal <- label
-  parseEquals
-  operandVal <- operand
-  pure $ Assignment (Var labelVal) (Val operandVal)
- where
-  parseEquals = spaceEater *> char '=' *> spaceEater
+assignment = undefined
 
--- | Parse an instruction.
 instruction :: Parser Expr
-instruction = lexeme $ Instruction
-  <$> (optional $ try labelAssign)
-  <*> mnemonic
-  <*> optional (Op <$> operand)
+instruction = undefined
 
--- | Parse an operand, e.g. #$2020.
 operand :: Parser Operand
-operand = lexeme $ Operand
-  <$> (option (IsImmediate False) (char '#' >> (pure $ IsImmediate True)))
-  <*> bytes
+operand = undefined
 
--- | Parse one or two bytes.
 bytes :: Parser T.Text
-bytes = lexeme $ do
-  char '$'
-  byte' <- byte
-  anotherByte <- option "" byte
-  pure $ T.append byte' anotherByte
+bytes = undefined
 
--- | Parse the assignment of a label to a location in the program.
 labelAssign :: Parser Label
-labelAssign = lexeme $  label <* char ':'
+labelAssign = undefined
 
--- | Parse a label, recognizes all alpha numeric characters.
 label :: Parser Label
-label = lexeme $ Label . T.pack <$> ((:) <$> letterChar <*>  many alphaNumChar)
+label = undefined
 
--- | Parse a mnemonic string, recognizes all 3 letter strings.
 mnemonic :: Parser Mnemonic
-mnemonic = lexeme $ Mnemonic . T.pack <$> op
- where
-  op = count 3 letterChar
+mnemonic = undefined
 
--- | Parse a two letter hex string.
 byte :: Parser T.Text
-byte = do
-  high <- hexDigitChar
-  low <- hexDigitChar
-  pure $ T.pack [high,low]
-
--- | Eats space and comments! Yum!
-spaceEater :: Parser ()
-spaceEater = L.space
-  (void spaceChar)
-  (L.skipLineComment ";")
-  (L.skipBlockComment "/*" "*/")
-
--- | A single unit, removes trailing whitespace.
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme spaceEater
+byte = undefined
 
