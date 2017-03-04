@@ -12,8 +12,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC
 
 spec :: Spec
-spec = do
-  asmSpec
+spec = asmSpec
 
 asmSpec = do
   describe "byte" $
@@ -32,4 +31,4 @@ instance Arbitrary TwoCharHexString where
     y <- elements vals
     pure $ TwoCharHexString (T.pack (x:[y]))
 
-prop_byte_parse t@(TwoCharHexString s) = parse byte "" s  `shouldParse` s
+prop_byte_parse (TwoCharHexString s) = parse byte "" s  `shouldParse` s
