@@ -49,5 +49,8 @@ mnemonic :: Parser Mnemonic
 mnemonic = undefined
 
 byte :: Parser T.Text
-byte = undefined
+byte = do
+  high <- hexDigitChar
+  low <- hexDigitChar
+  pure $ T.pack [high,low]
 
