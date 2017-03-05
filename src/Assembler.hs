@@ -24,8 +24,8 @@ data Expr
   | Assignment Var Val
   deriving Show
 
-parseExpression :: Parser Expr
-parseExpression = undefined
+expression :: Parser Expr
+expression = undefined
 
 assignment :: Parser Expr
 assignment = undefined
