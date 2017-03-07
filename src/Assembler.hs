@@ -1,7 +1,9 @@
 module Assembler where
 
+import Control.Monad (void)
 import qualified Data.Text as T -- from the "text" package
-import Text.Megaparsec  -- from the "megaparsec" package
+import Text.Megaparsec          -- from the "megaparsec" package
+import qualified Text.Megaparsec.Lexer as L -- from the "megaparsec" package
 
 type Parser = Parsec Dec T.Text
 
@@ -46,7 +48,7 @@ label :: Parser Label
 label = undefined
 
 mnemonic :: Parser Mnemonic
-mnemonic = Mnemonic . T.pack <$> mnem
+mnemonic = lexeme $ Mnemonic . T.pack <$> mnem
  where
   mnem = count 3 upperChar
 
@@ -56,14 +58,14 @@ byte = do
   low <- hexDigitChar
   pure $ T.pack [high,low]
 
+-- | Eats space and comments! Yum!
+spaceEater :: Parser ()
+spaceEater = L.space
+  (void spaceChar)
+  (L.skipLineComment ";")
+  (L.skipBlockComment "/*" "*/")
 
-
-
-
-
-
-
-
-
-
+-- | A single unit, removes trailing whitespace.
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme spaceEater
 
