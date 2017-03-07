@@ -46,11 +46,24 @@ label :: Parser Label
 label = undefined
 
 mnemonic :: Parser Mnemonic
-mnemonic = undefined
+mnemonic = Mnemonic . T.pack <$> mnem
+ where
+  mnem = count 3 upperChar
 
 byte :: Parser T.Text
 byte = do
   high <- hexDigitChar
   low <- hexDigitChar
   pure $ T.pack [high,low]
+
+
+
+
+
+
+
+
+
+
+
 
