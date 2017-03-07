@@ -45,6 +45,7 @@ test-suite assembler-suite
     , hspec
     , hspec-megaparsec >= 0.3.1 && < 0.4.0
     , megaparsec
+    , quickcheck-instances
     , tasty
     , tasty-hunit
     , tasty-hspec
