@@ -11,7 +11,7 @@ newtype IsImmediate = IsImmediate Bool deriving Show
 
 data Operand = Operand IsImmediate T.Text deriving Show
 
-newtype Mnemonic = Mnemonic T.Text deriving Show
+newtype Mnemonic = Mnemonic T.Text deriving (Eq, Show)
 
 newtype Var = Var Label  deriving Show
 

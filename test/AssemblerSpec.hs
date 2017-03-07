@@ -17,10 +17,35 @@ spec = asmSpec
 
 asmSpec = do
   describe "byte" $ do
-    it "should parse two consecutive characters in the hex range into a two character string" $ do
+    it "should parse two consecutive characters in the hex range into a two character string" $
       property prop_byte_parseValidData
-    it "should parse two chars and leave the rest of the string unconsumed, if successful" $ do
+    it "should parse two chars and leave the rest of the string unconsumed, if successful" $
       property prop_byte_parseSuccessShouldNotConsume
+
+  describe "mnemonic" $ do
+    it "should parse a valid mnemonic string" $
+      property prop_mnemonic_parsesValidMnemString
+
+
+
+--------------------------------------------------------------------------------
+-- mnemonic
+--------------------------------------------------------------------------------
+newtype ValidMnemonic = ValidMnemonic T.Text deriving Show
+
+-- A valid mnemonic in our parser is just a three letter upper case string.
+-- Note that this is not a valid mnemonic in the sense of actual instructions for the 6502,
+-- this is every upper case three letter string. Semantic analysis to validate tokens
+-- will come after parsing.
+instance Arbitrary ValidMnemonic where
+  arbitrary = do
+    first  <- choose ('A', 'Z')
+    second <- choose ('A', 'Z')
+    third  <- choose ('A', 'Z')
+    pure $ ValidMnemonic (T.pack [first, second, third])
+
+prop_mnemonic_parsesValidMnemString (ValidMnemonic s) =
+  parse mnemonic "" s `shouldParse` (Mnemonic s)
 
 --------------------------------------------------------------------------------
 -- byte
