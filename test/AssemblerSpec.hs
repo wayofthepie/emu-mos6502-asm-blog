@@ -40,16 +40,10 @@ asmSpec = do
 --------------------------------------------------------------------------------
 newtype ValidMnemonic = ValidMnemonic T.Text deriving Show
 
--- A valid mnemonic in our parser is just a three letter upper case string.
--- Note that this is not a valid mnemonic in the sense of actual instructions for the 6502,
--- this is every upper case three letter string. Semantic analysis to validate tokens
--- will come after parsing.
 instance Arbitrary ValidMnemonic where
   arbitrary = do
-    first  <- choose ('A', 'Z')
-    second <- choose ('A', 'Z')
-    third  <- choose ('A', 'Z')
-    pure $ ValidMnemonic (T.pack [first, second, third])
+    upper  <- choose ('A', 'Z')
+    pure $ ValidMnemonic (T.pack [upper, upper, upper])
 
 prop_mnemonic_parsesValidMnemString (ValidMnemonic s) =
   parse mnemonic "" s `shouldParse` (Mnemonic s)
