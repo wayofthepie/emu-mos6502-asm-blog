@@ -1,17 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 module AssemblerSpec where
 
+import Data.Monoid ((<>))
+import Data.Char (isAlpha)
 import qualified Data.Text as T
-import Text.Megaparsec
+import Text.Megaparsec hiding (Label, label)
 
 import Assembler
 
 import Test.Hspec.Megaparsec
+import Test.QuickCheck hiding (label)
 import Test.QuickCheck.Instances
 import Test.Tasty.Hspec
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
-import Debug.Trace
+import Test.Tasty.QuickCheck hiding (label)
+
 spec :: Spec
 spec = asmSpec
 
@@ -26,6 +28,11 @@ asmSpec = do
     it "should parse a valid mnemonic string" $
       property prop_mnemonic_parsesValidMnemString
 
+  describe "label" $ do
+    it "should parse a valid label string" $
+      property prop_label_validString
+    it "should fail to parse string that starts with a non-alpha character" $
+      property prop_label_invalidString
 
 
 --------------------------------------------------------------------------------
@@ -70,4 +77,41 @@ prop_byte_parseValidData (TwoCharHexString s) = parse byte "" s  `shouldParse` s
 -- When successful should not consume more input.
 prop_byte_parseSuccessShouldNotConsume (TwoCharHexString s) extra =
   runParser' byte (initialState (T.append s extra)) `succeedsLeaving` extra
+
+--------------------------------------------------------------------------------
+-- label
+--------------------------------------------------------------------------------
+newtype LabelWithLetter = LabelWithLetter T.Text deriving Show
+newtype LabelWithNonLetter = LabelWithNonLetter T.Text deriving Show
+
+instance Arbitrary LabelWithLetter where
+  arbitrary = do
+    lbl <- genAlphaNum
+    lowerLetter <- choose ('a', 'z')
+    upperLetter <- choose ('A', 'Z')
+    start <- elements [lowerLetter, upperLetter]
+    pure . LabelWithLetter $ T.pack (start:lbl)
+
+instance Arbitrary LabelWithNonLetter where
+  arbitrary = do
+    (LabelWithLetter lbl) <- arbitrary
+    nonAlphaChar <- suchThat (arbitrary :: Gen Char) (\s -> not $ isAlpha s)
+    pure . LabelWithNonLetter $ T.append (T.pack [nonAlphaChar]) lbl
+
+prop_label_validString (LabelWithLetter lbl) =
+  parse label "" lbl `shouldParse` (Label lbl)
+
+prop_label_invalidString (LabelWithNonLetter lbl) =
+  parse label "" lbl `shouldFailWith`  err posI (utok (T.head lbl) <> elabel "letter")
+
+--------------------------------------------------------------------------------
+-- Helpers
+--------------------------------------------------------------------------------
+genAlphaNum :: Gen String
+genAlphaNum = do
+  lower <- choose ('a', 'z')
+  upper <- choose ('A', 'Z')
+  numeric <- choose ('0', '9')
+  listOf . elements $ [lower, upper, numeric]
+
 

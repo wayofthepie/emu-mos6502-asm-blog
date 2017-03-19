@@ -1,13 +1,13 @@
 module Assembler where
 
 import Control.Monad (void)
-import qualified Data.Text as T -- from the "text" package
-import Text.Megaparsec          -- from the "megaparsec" package
+import qualified Data.Text as T       -- from the "text" package
+import Text.Megaparsec hiding (Label, label) -- from the "megaparsec" package
 import qualified Text.Megaparsec.Lexer as L -- from the "megaparsec" package
 
 type Parser = Parsec Dec T.Text
 
-newtype Label = Label T.Text deriving Show
+newtype Label = Label T.Text deriving (Eq, Show)
 
 newtype IsImmediate = IsImmediate Bool deriving Show
 
@@ -45,7 +45,7 @@ labelAssign :: Parser Label
 labelAssign = undefined
 
 label :: Parser Label
-label = undefined
+label = lexeme $ Label . T.pack <$> ((:) <$> letterChar <*>  many alphaNumChar)
 
 mnemonic :: Parser Mnemonic
 mnemonic = lexeme $ Mnemonic . T.pack <$> mnem
