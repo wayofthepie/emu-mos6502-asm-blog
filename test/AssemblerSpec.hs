@@ -26,14 +26,17 @@ asmSpec = do
 
   describe "mnemonic" $ do
     it "should parse a valid mnemonic string" $
-      property prop_mnemonic_parsesValidMnemString
+      property prop_mnemonic_parseValidMnemString
 
   describe "label" $ do
     it "should parse a valid label string" $
-      property prop_label_validString
+      property prop_label_validLabelString
     it "should fail to parse string that starts with a non-alpha character" $
-      property prop_label_invalidString
+      property prop_label_invalidLabelString
 
+  describe "labelAssign" $ do
+    it "should discard ':' and parse any valid label, giving a Label" $
+      property prop_labelAssign_shouldDiscardColon
 
 --------------------------------------------------------------------------------
 -- mnemonic
@@ -45,7 +48,7 @@ instance Arbitrary ValidMnemonic where
     upper  <- choose ('A', 'Z')
     pure $ ValidMnemonic (T.pack [upper, upper, upper])
 
-prop_mnemonic_parsesValidMnemString (ValidMnemonic s) =
+prop_mnemonic_parseValidMnemString (ValidMnemonic s) =
   parse mnemonic "" s `shouldParse` (Mnemonic s)
 
 --------------------------------------------------------------------------------
@@ -92,11 +95,17 @@ instance Arbitrary LabelWithNonLetter where
     nonAlphaChar <- suchThat (arbitrary :: Gen Char) (\s -> not $ isAlpha s)
     pure . LabelWithNonLetter $ T.append (T.pack [nonAlphaChar]) lbl
 
-prop_label_validString (LabelWithLetter lbl) =
+prop_label_validLabelString (LabelWithLetter lbl) =
   parse label "" lbl `shouldParse` (Label lbl)
 
-prop_label_invalidString (LabelWithNonLetter lbl) =
+prop_label_invalidLabelString (LabelWithNonLetter lbl) =
   parse label "" lbl `shouldFailWith`  err posI (utok (T.head lbl) <> elabel "letter")
+
+--------------------------------------------------------------------------------
+-- labelAssign
+--------------------------------------------------------------------------------
+prop_labelAssign_shouldDiscardColon (LabelWithLetter lbl) =
+  parse labelAssign "" (T.snoc lbl ':') `shouldParse` Label lbl
 
 --------------------------------------------------------------------------------
 -- Helpers

@@ -42,7 +42,7 @@ bytes :: Parser T.Text
 bytes = undefined
 
 labelAssign :: Parser Label
-labelAssign = undefined
+labelAssign = lexeme $ label <* char ':'
 
 label :: Parser Label
 label = lexeme $ Label . T.pack <$> ((:) <$> letterChar <*>  many alphaNumChar)
