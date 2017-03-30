@@ -9,9 +9,9 @@ type Parser = Parsec Dec T.Text
 
 newtype Label = Label T.Text deriving (Eq, Show)
 
-newtype IsImmediate = IsImmediate Bool deriving Show
+newtype IsImmediate = IsImmediate Bool deriving (Eq, Show)
 
-data Operand = Operand IsImmediate T.Text deriving Show
+data Operand = Operand IsImmediate T.Text deriving (Eq, Show)
 
 newtype Mnemonic = Mnemonic T.Text deriving (Eq, Show)
 
@@ -36,7 +36,9 @@ instruction :: Parser Expr
 instruction = undefined
 
 operand :: Parser Operand
-operand = undefined
+operand = lexeme $ Operand
+  <$> (option (IsImmediate False) (char '#' >> (pure $ IsImmediate True)))
+  <*> bytes
 
 bytes :: Parser T.Text
 bytes = do

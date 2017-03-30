@@ -41,6 +41,20 @@ asmSpec = do
   describe "bytes" $ do
     it "should parse a single byte" $
       property prop_bytes_parsesASingleByte
+    it "should parse two bytes" $
+      property prop_bytes_parsesTwoBytes
+
+  describe "operand" $ do
+    it "should parse single immediate addressed byte" $
+      property prop_operand_parsesImmediateAddressedByte
+    it "should parse two immediate addressd bytes" $
+      property prop_operand_parsesImmediateAddressedBytes
+    it "should parse single non-immediate addressed byte" $
+      property prop_operand_parsesNonImmediateAddressedByte
+    it "should parse two non-immediate addressd bytes" $
+      property prop_operand_parsesNonImmediateAddressedBytes
+
+
 
 
 
@@ -73,11 +87,9 @@ instance Arbitrary TwoCharHexString where
     pure $ TwoCharHexString (T.pack (x:[y]))
 
 -- Should parse valid two char hexstring.
-prop_byte_parseValidData :: TwoCharHexString -> IO ()
 prop_byte_parseValidData (TwoCharHexString s) = parse byte "" s  `shouldParse` s
 
 -- When successful should not consume more input.
-prop_byte_parseSuccessShouldNotConsume :: TwoCharHexString -> IO ()
 prop_byte_parseSuccessShouldNotConsume (TwoCharHexString s) extra =
   runParser' byte (initialState (T.append s extra)) `succeedsLeaving` extra
 
@@ -123,7 +135,25 @@ prop_bytes_parsesASingleByte (TwoCharHexString b) =
 prop_bytes_parsesTwoBytes (TwoCharHexString b1) (TwoCharHexString b2) =
   let b = T.append b1 b2
       byteAsString = T.append "$" b
-  in  parse bytes "" byteAsString `shouldParse` "f"
+  in  parse bytes "" byteAsString `shouldParse` b
+
+--------------------------------------------------------------------------------
+-- operand
+--------------------------------------------------------------------------------
+prop_operand_parsesImmediateAddressedByte (TwoCharHexString b) =
+  parse operand "" (T.append "#$" $ b) `shouldParse` Operand (IsImmediate True) b
+
+prop_operand_parsesImmediateAddressedBytes (TwoCharHexString first) (TwoCharHexString second) =
+  let b = T.append first second
+  in  parse operand "" (T.append "#$" $ b) `shouldParse` Operand (IsImmediate True) b
+
+prop_operand_parsesNonImmediateAddressedByte (TwoCharHexString b) =
+  parse operand "" (T.append "$" $ b) `shouldParse` Operand (IsImmediate False) b
+
+prop_operand_parsesNonImmediateAddressedBytes (TwoCharHexString first) (TwoCharHexString second) =
+  let b = T.append first second
+  in  parse operand "" (T.append "$" $ b) `shouldParse` Operand (IsImmediate False) b
+
 
 --------------------------------------------------------------------------------
 -- Helpers
