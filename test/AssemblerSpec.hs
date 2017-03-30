@@ -38,6 +38,12 @@ asmSpec = do
     it "should discard ':' and parse any valid label, giving a Label" $
       property prop_labelAssign_shouldDiscardColon
 
+  describe "bytes" $ do
+    it "should parse a single byte" $
+      property prop_bytes_parsesASingleByte
+
+
+
 --------------------------------------------------------------------------------
 -- mnemonic
 --------------------------------------------------------------------------------
@@ -66,12 +72,12 @@ instance Arbitrary TwoCharHexString where
     y <- elements vals
     pure $ TwoCharHexString (T.pack (x:[y]))
 
-newtype ValidFirstTwoChars = ValidFirstTwoChars T.Text deriving Show
-
--- Shoud parse valid two char hexstring.
+-- Should parse valid two char hexstring.
+prop_byte_parseValidData :: TwoCharHexString -> IO ()
 prop_byte_parseValidData (TwoCharHexString s) = parse byte "" s  `shouldParse` s
 
 -- When successful should not consume more input.
+prop_byte_parseSuccessShouldNotConsume :: TwoCharHexString -> IO ()
 prop_byte_parseSuccessShouldNotConsume (TwoCharHexString s) extra =
   runParser' byte (initialState (T.append s extra)) `succeedsLeaving` extra
 
@@ -106,6 +112,18 @@ prop_label_invalidLabelString (LabelWithNonLetter lbl) =
 --------------------------------------------------------------------------------
 prop_labelAssign_shouldDiscardColon (LabelWithLetter lbl) =
   parse labelAssign "" (T.snoc lbl ':') `shouldParse` Label lbl
+
+--------------------------------------------------------------------------------
+-- bytes
+--------------------------------------------------------------------------------
+prop_bytes_parsesASingleByte (TwoCharHexString b) =
+  let byteAsString = T.append "$" b
+  in  parse bytes "" byteAsString `shouldParse` b
+
+prop_bytes_parsesTwoBytes (TwoCharHexString b1) (TwoCharHexString b2) =
+  let b = T.append b1 b2
+      byteAsString = T.append "$" b
+  in  parse bytes "" byteAsString `shouldParse` "f"
 
 --------------------------------------------------------------------------------
 -- Helpers

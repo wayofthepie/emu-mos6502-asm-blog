@@ -39,7 +39,11 @@ operand :: Parser Operand
 operand = undefined
 
 bytes :: Parser T.Text
-bytes = undefined
+bytes = do
+  char '$'
+  firstByte <- byte
+  anotherByte <- option T.empty byte
+  pure $ T.append firstByte anotherByte
 
 labelAssign :: Parser Label
 labelAssign = lexeme $ label <* char ':'
